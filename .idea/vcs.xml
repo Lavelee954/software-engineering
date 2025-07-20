@@ -2,5 +2,10 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/BPlusTree3" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Context-Engineering" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ccxt" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/context-engineering-intro" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/markitdown" vcs="Git" />
   </component>
 </project>
