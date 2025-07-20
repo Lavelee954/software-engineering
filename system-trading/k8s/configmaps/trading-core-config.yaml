@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trading-core-config
+  namespace: trading-system
+  labels:
+    app.kubernetes.io/name: trading-core
+    app.kubernetes.io/component: config
+data:
+  # Server Configuration
+  SERVER_HOST: "0.0.0.0"
+  SERVER_PORT: "8080"
+  
+  # Database Configuration
+  DB_HOST: "postgresql-service"
+  DB_PORT: "5432"
+  DB_NAME: "trading_system"
+  DB_USER: "postgres"
+  
+  # NATS Configuration
+  NATS_URL: "nats://nats-service:4222"
+  
+  # Redis Configuration
+  REDIS_ADDR: "redis-service:6379"
+  
+  # Risk Management Configuration
+  RISK_MAX_POSITION_SIZE: "0.1"
+  RISK_MAX_VAR: "0.02"
+  RISK_MAX_LEVERAGE: "2.0"
+  RISK_MAX_DAILY_LOSS: "0.05"
+  RISK_MAX_CONCENTRATION: "0.2"
+  
+  # Logging Configuration
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  
+  # Environment
+  ENVIRONMENT: "production" 

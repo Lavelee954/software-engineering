@@ -1,0 +1,183 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: technical-analysis
+  namespace: trading-system
+  labels:
+    app.kubernetes.io/name: technical-analysis
+    app.kubernetes.io/component: python-agent
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: technical-analysis
+      app.kubernetes.io/component: python-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: technical-analysis
+        app.kubernetes.io/component: python-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: technical-analysis
+          image: python-agents:latest  # Replace with your image registry
+          imagePullPolicy: Always
+          command: ["python", "-m", "agents.technical_analysis.runner"]
+          env:
+            # NATS Configuration
+            - name: NATS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: NATS_URL
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: LOG_LEVEL
+            
+            # Technical Analysis Configuration
+            - name: TECHNICAL_AGENT_NAME
+              value: "$(POD_NAME)"
+            - name: TECHNICAL_DATA_WINDOW_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: TECHNICAL_DATA_WINDOW_SIZE
+            - name: TECHNICAL_MIN_BARS_REQUIRED
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: TECHNICAL_MIN_BARS_REQUIRED
+            - name: TECHNICAL_PUBLISH_FREQUENCY
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: TECHNICAL_PUBLISH_FREQUENCY
+            - name: TECHNICAL_RSI_PERIOD
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: TECHNICAL_RSI_PERIOD
+            - name: TECHNICAL_MACD_FAST
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: TECHNICAL_MACD_FAST
+            - name: TECHNICAL_MACD_SLOW
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: TECHNICAL_MACD_SLOW
+            - name: TECHNICAL_MACD_SIGNAL
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: TECHNICAL_MACD_SIGNAL
+            - name: TECHNICAL_BB_PERIOD
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: TECHNICAL_BB_PERIOD
+            - name: TECHNICAL_BB_STD
+              valueFrom:
+                configMapKeyRef:
+                  name: python-agents-config
+                  key: TECHNICAL_BB_STD
+            
+            # Pod metadata
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          ports:
+            - name: metrics
+              containerPort: 8080
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 12
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: technical-analysis-hpa
+  namespace: trading-system
+  labels:
+    app.kubernetes.io/name: technical-analysis
+    app.kubernetes.io/component: python-agent
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: technical-analysis
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60 

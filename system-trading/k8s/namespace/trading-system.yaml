@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trading-system
+  labels:
+    app.kubernetes.io/name: trading-system
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: namespace
+    environment: production
+  annotations:
+    description: "Multi-Agent Trading System with Central Router A2A Communication"
+    contact: "trading-team@company.com"
+    kubernetes.io/managed-by: "kubectl" 

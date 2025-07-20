@@ -1,0 +1,80 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: trading-system
+  namespace: trading-system
+
+# Namespace
+namespace: trading-system
+
+# Resources in deployment order
+resources:
+  # 1. Namespace
+  - namespace/trading-system.yaml
+  
+  # 2. Storage
+  - storage/persistent-volumes.yaml
+  
+  # 3. Secrets and ConfigMaps
+  - secrets/trading-secrets.yaml
+  - configmaps/trading-core-config.yaml
+  - configmaps/python-agents-config.yaml
+  - configmaps/prometheus-config.yaml
+  
+  # 4. Infrastructure Components
+  - infrastructure/nats/service.yaml
+  - infrastructure/nats/deployment.yaml
+  - infrastructure/postgresql/service.yaml
+  - infrastructure/postgresql/statefulset.yaml
+  - infrastructure/redis/redis.yaml
+  - infrastructure/prometheus/prometheus.yaml
+  - infrastructure/grafana/grafana.yaml
+  
+  # 5. Application Components
+  - applications/trading-core/trading-core.yaml
+  - applications/python-agents/central-router.yaml
+  - applications/python-agents/technical-analysis.yaml
+  - applications/python-agents/analysis-agents.yaml
+  
+  # 6. Ingress and Network
+  - ingress/trading-system-ingress.yaml
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/part-of: trading-system
+  app.kubernetes.io/managed-by: kustomize
+  environment: production
+
+# Common annotations
+commonAnnotations:
+  description: "Multi-Agent Trading System with Central Router A2A Communication"
+  documentation: "https://github.com/yourusername/trading-system"
+  contact: "trading-team@company.com"
+
+# Images (update these with your actual image registry)
+images:
+  - name: trading-core
+    newName: your-registry/trading-core
+    newTag: v1.0.0
+  - name: python-agents
+    newName: your-registry/python-agents
+    newTag: v1.0.0
+
+# ConfigMap and Secret generators
+configMapGenerator:
+  - name: deployment-info
+    literals:
+      - DEPLOYMENT_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      - VERSION="1.0.0"
+      - ENVIRONMENT="production"
+
+# Patches for different environments
+patchesStrategicMerge:
+  # Uncomment and customize for different environments
+  # - patches/production-patches.yaml
+  # - patches/staging-patches.yaml
+
+# Resource quotas and limits
+# Can be enabled per environment
+# - resource-quotas.yaml 

@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: python-agents-config
+  namespace: trading-system
+  labels:
+    app.kubernetes.io/name: python-agents
+    app.kubernetes.io/component: config
+data:
+  # NATS Configuration
+  NATS_URL: "nats://nats-service:4222"
+  
+  # Logging Configuration
+  LOG_LEVEL: "INFO"
+  
+  # Technical Analysis Agent Configuration
+  TECHNICAL_DATA_WINDOW_SIZE: "200"
+  TECHNICAL_MIN_BARS_REQUIRED: "50"
+  TECHNICAL_PUBLISH_FREQUENCY: "1"
+  TECHNICAL_RSI_PERIOD: "14"
+  TECHNICAL_MACD_FAST: "12"
+  TECHNICAL_MACD_SLOW: "26"
+  TECHNICAL_MACD_SIGNAL: "9"
+  TECHNICAL_BB_PERIOD: "20"
+  TECHNICAL_BB_STD: "2.0"
+  
+  # News Analysis Agent Configuration
+  NEWS_MAX_HISTORY_ITEMS: "1000"
+  NEWS_RELEVANCE_THRESHOLD: "0.7"
+  NEWS_IMPACT_THRESHOLD: "0.6"
+  NEWS_ENABLE_LANGGRAPH: "true"
+  NEWS_ENABLE_A2A_COMMUNICATION: "true"
+  
+  # Sentiment Analysis Agent Configuration
+  SENTIMENT_WINDOW_MINUTES: "15"
+  SENTIMENT_TREND_ANALYSIS_HOURS: "24"
+  SENTIMENT_MAX_HISTORY_ITEMS: "2000"
+  SENTIMENT_CONFIDENCE_THRESHOLD: "0.6"
+  SENTIMENT_ENABLE_LANGGRAPH: "true"
+  SENTIMENT_ENABLE_A2A_COMMUNICATION: "true"
+  
+  # Central Router Configuration
+  ROUTER_LOG_LEVEL: "INFO"
+  ROUTER_HEALTH_CHECK_INTERVAL: "30"
+  ROUTER_CLEANUP_INTERVAL: "60"
+  ROUTER_STATS_INTERVAL: "30" 

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats
+  namespace: trading-system
+  labels:
+    app.kubernetes.io/name: nats
+    app.kubernetes.io/component: message-bus
+    app.kubernetes.io/version: "2.10"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nats
+      app.kubernetes.io/component: message-bus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nats
+        app.kubernetes.io/component: message-bus
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8222"
+        prometheus.io/path: "/varz"
+    spec:
+      containers:
+        - name: nats
+          image: nats:2.10-alpine
+          args:
+            - "--js"              # Enable JetStream
+            - "--m"
+            - "8222"              # Monitoring port
+            - "--cluster_name"
+            - "trading-cluster"
+            - "--max_payload"
+            - "8MB"
+            - "--write_deadline"
+            - "10s"
+          ports:
+            - name: client
+              containerPort: 4222
+            - name: monitoring
+              containerPort: 8222
+            - name: leafnode
+              containerPort: 7422
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: SERVER_NAME
+              value: $(POD_NAME)
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8222
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8222
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: nats-storage
+              mountPath: /data
+      volumes:
+        - name: nats-storage
+          emptyDir: {} 
