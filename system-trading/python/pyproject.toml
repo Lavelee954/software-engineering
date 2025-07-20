@@ -7,7 +7,7 @@ name = "trading-system-agents"
 version = "0.1.0"
 description = "Python-based analysis agents for the multi-asset trading system"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "pandas>=2.0.0",
     "numpy>=1.24.0", 

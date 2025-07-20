@@ -141,7 +141,7 @@ cmd/main.go                    # Application Entry Point
 ## 🔧 Technology Stack
 
 ### Go Core Services (High-Performance I/O)
-- **Language**: Go 1.21
+- **Language**: Go 1.24
 - **Message Bus**: NATS for pub/sub messaging
 - **Logging**: Zap for structured logging
 - **Metrics**: Prometheus for observability
@@ -160,7 +160,7 @@ require (
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Go 1.21+
+- Go 1.24+
 - NATS Server
 - PostgreSQL (for persistence)
 - Redis (for caching)
