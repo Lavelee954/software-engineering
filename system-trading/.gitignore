@@ -103,3 +103,6 @@ agent_registry/
 venv/
 env/
 ENV/
+
+# Legacy backup files (docker-compose migration)
+legacy/
