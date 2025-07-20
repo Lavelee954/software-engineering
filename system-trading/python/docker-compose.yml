@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # Technical Analysis Agent - Single Process
+  technical-analysis:
+    build: .
+    container_name: technical-analysis-agent
+    restart: unless-stopped
+    command: ["python", "run_technical_analysis.py"]
+    environment:
+      - NATS_URL=nats://nats:4222
+      - LOG_LEVEL=INFO
+      - TECHNICAL_AGENT_NAME=technical-analysis-agent-1
+      - TECHNICAL_DATA_WINDOW_SIZE=200
+      - TECHNICAL_MIN_BARS_REQUIRED=50
+      - TECHNICAL_PUBLISH_FREQUENCY=1
+    depends_on:
+      - nats
+    networks:
+      - trading-system
+    volumes:
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Multiple Technical Analysis Agents for scaling
+  technical-analysis-2:
+    build: .
+    container_name: technical-analysis-agent-2
+    restart: unless-stopped
+    command: ["python", "run_technical_analysis.py"]
+    environment:
+      - NATS_URL=nats://nats:4222
+      - LOG_LEVEL=INFO
+      - TECHNICAL_AGENT_NAME=technical-analysis-agent-2
+      - TECHNICAL_DATA_WINDOW_SIZE=200
+      - TECHNICAL_MIN_BARS_REQUIRED=50
+    depends_on:
+      - nats
+    networks:
+      - trading-system
+    volumes:
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    profiles:
+      - scaling  # Only start with --profile scaling
+
+  # NATS server for testing (use existing one in production)
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats-server
+    ports:
+      - "4222:4222"
+      - "8222:8222"  # HTTP monitoring
+      - "6222:6222"  # Clustering
+    command:
+      - "--http_port"
+      - "8222"
+      - "--js"  # Enable JetStream
+    networks:
+      - trading-system
+    volumes:
+      - nats_data:/data
+
+networks:
+  trading-system:
+    driver: bridge
+
+volumes:
+  nats_data:

@@ -1,0 +1,41 @@
+[Unit]
+Description=Technical Analysis Agent
+Documentation=https://github.com/trading-system/docs
+After=network.target nats.service
+Wants=nats.service
+Requires=network.target
+
+[Service]
+Type=simple
+User=trading
+Group=trading
+WorkingDirectory=/opt/trading-system/python
+ExecStart=/opt/trading-system/python/venv/bin/python run_technical_analysis.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables
+Environment=NATS_URL=nats://localhost:4222
+Environment=LOG_LEVEL=INFO
+Environment=TECHNICAL_AGENT_NAME=technical-analysis-agent-1
+
+# Resource limits
+LimitNOFILE=65536
+MemoryLimit=512M
+CPUQuota=100%
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/trading-system/python/logs
+
+# Health check
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

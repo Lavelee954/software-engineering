@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: technical-analysis-agent
+  namespace: trading-system
+  labels:
+    app: technical-analysis-agent
+    component: analysis
+    tier: processing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: technical-analysis-agent
+  template:
+    metadata:
+      labels:
+        app: technical-analysis-agent
+        component: analysis
+        tier: processing
+    spec:
+      containers:
+      - name: technical-analysis
+        image: trading-system/technical-analysis:latest
+        command: ["python", "run_technical_analysis.py"]
+        env:
+        - name: NATS_URL
+          value: "nats://nats-service:4222"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: TECHNICAL_AGENT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: TECHNICAL_DATA_WINDOW_SIZE
+          value: "200"
+        - name: TECHNICAL_MIN_BARS_REQUIRED
+          value: "50"
+        - name: TECHNICAL_PUBLISH_FREQUENCY
+          value: "1"
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import sys; sys.exit(0)"
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        
+        readinessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import sys; sys.exit(0)"
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 15"]
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      
+      securityContext:
+        fsGroup: 1000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: technical-analysis-service
+  namespace: trading-system
+  labels:
+    app: technical-analysis-agent
+spec:
+  selector:
+    app: technical-analysis-agent
+  ports:
+  - name: health
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: technical-analysis-hpa
+  namespace: trading-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: technical-analysis-agent
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
