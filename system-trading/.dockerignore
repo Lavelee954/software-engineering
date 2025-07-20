@@ -1,0 +1,92 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test and coverage files
+*.test
+coverage.out
+coverage.html
+test-results/
+
+# Build artifacts
+bin/
+*.tar.gz
+*.zip
+release/
+
+# Development and temporary files
+tmp/
+temp/
+logs/
+*.log
+
+# Configuration files with secrets
+.env
+.env.*
+!.env.example
+config.local.yaml
+config.*.yaml
+!config.example.yaml
+
+# Python related (not needed for Go build)
+python/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.coverage
+venv/
+env/
+ENV/
+
+# Docker related
+Dockerfile.*
+docker-compose*.yml
+.dockerignore
+
+# Kubernetes manifests (not needed in container)
+k8s/
+
+# Legacy backup files
+legacy/
+
+# Application data
+/data/
+/output/
+/reports/
+postgres_data/
+grafana_data/
+router_data/
+agent_registry/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Other tools
+Makefile
+prometheus.yml 
